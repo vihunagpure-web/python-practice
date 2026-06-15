@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python Code Practice</title>
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            padding: 30px;
+            min-height: 600px;
+        }
+
+        .section {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .section-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #333;
+            display: flex;
+            align-items: center;
+        }
+
+        .section-title::before {
+            content: '';
+            width: 4px;
+            height: 24px;
+            background: #667eea;
+            margin-right: 10px;
+            border-radius: 2px;
+        }
+
+        #code-editor {
+            width: 100%;
+            height: 400px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            resize: vertical;
+            background: #f8f9fa;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        #code-editor:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .output-section {
+            display: flex;
+            flex-direction: column;
+        }
+
+        #output {
+            flex: 1;
+            padding: 15px;
+            background: #1e1e1e;
+            color: #00ff00;
+            border-radius: 6px;
+            border: 2px solid #e0e0e0;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            overflow-y: auto;
+            line-height: 1.6;
+            min-height: 400px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        button {
+            padding: 12px 24px;
+            font-size: 1em;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        #run-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            flex: 1;
+        }
+
+        #run-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        #clear-btn {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        #clear-btn:hover {
+            background: #e0e0e0;
+        }
+
+        #clear-output-btn {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        #clear-output-btn:hover {
+            background: #e0e0e0;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .error {
+            color: #ff6b6b;
+        }
+
+        .success {
+            color: #00ff00;
+        }
+
+        .examples {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .examples h3 {
+            font-size: 0.95em;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .examples-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .example-btn {
+            padding: 8px 12px;
+            font-size: 0.9em;
+            background: white;
+            color: #667eea;
+            border: 1px solid #667eea;
+            border-radius: 4px;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.2s;
+        }
+
+        .example-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            #code-editor, #output {
+                height: 300px;
+                min-height: 300px;
+            }
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🐍 Python Code Practice</h1>
+            <p>Write, run, and test your Python code in the browser</p>
+        </div>
+
+        <div class="content">
+            <div class="section">
+                <div class="section-title">Code Editor</div>
+                <textarea id="code-editor" placeholder="# Write your Python code here...
+# Example:
+print('Hello, World!')
+
+# Try variables
+name = 'Python'
+print(f'Learning {name}')
+
+# Or loops
+for i in range(5):
+    print(i)"></textarea>
+                
+                <div class="examples">
+                    <h3>📚 Quick Examples</h3>
+                    <div class="examples-list">
+                        <button class="example-btn" onclick="loadExample('hello')">Hello World</button>
+                        <button class="example-btn" onclick="loadExample('variables')">Variables & Strings</button>
+                        <button class="example-btn" onclick="loadExample('loops')">For Loop</button>
+                        <button class="example-btn" onclick="loadExample('functions')">Functions</button>
+                        <button class="example-btn" onclick="loadExample('list')">Lists & Operations</button>
+                        <button class="example-btn" onclick="loadExample('conditional')">If/Else</button>
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button id="run-btn" onclick="runCode()">▶ Run Code</button>
+                    <button id="clear-btn" onclick="clearCode()">🗑️ Clear</button>
+                </div>
+            </div>
+
+            <div class="section output-section">
+                <div class="section-title">Output</div>
+                <div id="output">Ready to run code...</div>
+                <div class="button-group">
+                    <button id="clear-output-btn" onclick="clearOutput()" style="flex: 1;">Clear Output</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let pyodide = null;
+        let editorReady = false;
+
+        const examples = {
+            hello: `print('Hello, World!')
+print('Welcome to Python Practice!')`,
+            
+            variables: `name = 'Alice'
+age = 25
+height = 5.6
+
+print(f'Name: {name}')
+print(f'Age: {age}')
+print(f'Height: {height}')
+
+# String operations
+greeting = 'Python ' + 'is ' + 'awesome!'
+print(greeting)`,
+            
+            loops: `# For loop with range
+for i in range(5):
+    print(f'Count: {i}')
+
+# For loop with list
+fruits = ['apple', 'banana', 'cherry']
+for fruit in fruits:
+    print(f'I like {fruit}')`,
+            
+            functions: `def greet(name):
+    return f'Hello, {name}!'
+
+def add(a, b):
+    return a + b
+
+# Using functions
+print(greet('World'))
+result = add(10, 20)
+print(f'10 + 20 = {result}')`,
+            
+            list: `# Create and manipulate lists
+numbers = [1, 2, 3, 4, 5]
+print(f'Original list: {numbers}')
+
+# Add items
+numbers.append(6)
+print(f'After append: {numbers}')
+
+# List operations
+print(f'Sum: {sum(numbers)}')
+print(f'Length: {len(numbers)}')
+print(f'Max: {max(numbers)}')
+print(f'Min: {min(numbers)}')
+
+# List slicing
+print(f'First 3: {numbers[:3]}')
+print(f'Last 2: {numbers[-2:]}')`,
+            
+            conditional: `age = 20
+
+if age < 13:
+    print('You are a child')
+elif age < 18:
+    print('You are a teenager')
+elif age < 65:
+    print('You are an adult')
+else:
+    print('You are a senior')
+
+# Using and/or
+if age >= 18 and age < 65:
+    print('Working age')`
+        };
+
+        async function initPyodide() {
+            const output = document.getElementById('output');
+            output.innerHTML = '<div class="loading"><div class="spinner"></div>Initializing Python environment...</div>';
+            
+            try {
+                pyodide = await loadPyodide();
+                output.innerHTML = '<span class="success">✓ Python ready! Start coding...</span>';
+                editorReady = true;
+                document.getElementById('run-btn').disabled = false;
+            } catch (error) {
+                output.innerHTML = `<span class="error">Error initializing Python: ${error.message}</span>`;
+            }
+        }
+
+        async function runCode() {
+            if (!editorReady) {
+                alert('Python is still loading. Please wait a moment...');
+                return;
+            }
+
+            const code = document.getElementById('code-editor').value;
+            const output = document.getElementById('output');
+
+            if (!code.trim()) {
+                output.textContent = 'Please enter some Python code...';
+                return;
+            }
+
+            output.innerHTML = '<div class="loading"><div class="spinner"></div>Running code...</div>';
+
+            try {
+                // Redirect stdout to capture output
+                const oldStdout = pyodide.runPython(`
+import sys
+from io import StringIO
+
+old_stdout = sys.stdout
+sys.stdout = StringIO()
+`);
+
+                // Run the user's code
+                pyodide.runPython(code);
+
+                // Get the output
+                const result = pyodide.runPython(`
+sys.stdout.getvalue()
+`);
+
+                pyodide.runPython(`
+sys.stdout = old_stdout
+`);
+
+                output.textContent = result || '(No output)';
+                if (result) {
+                    output.classList.add('success');
+                }
+            } catch (error) {
+                output.innerHTML = `<span class="error">❌ Error:\n${error.message}</span>`;
+                output.classList.remove('success');
+            }
+        }
+
+        function clearCode() {
+            if (confirm('Clear all code?')) {
+                document.getElementById('code-editor').value = '';
+                document.getElementById('code-editor').focus();
+            }
+        }
+
+        function clearOutput() {
+            document.getElementById('output').textContent = 'Output cleared...';
+            document.getElementById('output').classList.remove('success', 'error');
+        }
+
+        function loadExample(exampleKey) {
+            document.getElementById('code-editor').value = examples[exampleKey];
+            document.getElementById('code-editor').focus();
+        }
+
+        // Handle Ctrl+Enter to run code
+        document.getElementById('code-editor').addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                e.preventDefault();
+                runCode();
+            }
+        });
+
+        // Initialize on page load
+        window.addEventListener('load', initPyodide);
+    </script>
+</body>
+</html>
